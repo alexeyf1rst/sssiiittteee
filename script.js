@@ -1,0 +1,18 @@
+'use strict';
+const menuButton=document.querySelector('.menu-toggle');
+const navigation=document.getElementById('navigation');
+function closeMenu(){navigation.classList.remove('open');menuButton.setAttribute('aria-expanded','false');menuButton.setAttribute('aria-label','Открыть меню');}
+menuButton.addEventListener('click',()=>{const open=navigation.classList.toggle('open');menuButton.setAttribute('aria-expanded',String(open));menuButton.setAttribute('aria-label',open?'Закрыть меню':'Открыть меню');});
+navigation.querySelectorAll('a').forEach(a=>a.addEventListener('click',closeMenu));
+document.addEventListener('keydown',event=>{if(event.key==='Escape')closeMenu();});
+const palettes={natural:{title:'Тёплый дуб + молочные оттенки',text:'Естественная фактура дерева и светлая отделка. Уютная база для неспешных завтраков.',colors:['#ac906c','#ded4c1','#eee9dc','#625c4d']},olive:{title:'Мягкая олива + натуральное дерево',text:'Приглушённый зелёный, тёплые фактуры и спокойный фон. Чуть ближе к природе, даже в центре города.',colors:['#797d65','#b4b89e','#dddfce','#ab8d68']},stone:{title:'Светлый камень + графитовые детали',text:'Чистые линии, нежная фактура камня и точные тёмные акценты. Воздух и свет без визуального шума.',colors:['#c7c2b5','#e9e6de','#a7aaa1','#474d47']}};
+let selectedPalette='natural';
+document.querySelectorAll('.swatch').forEach(button=>button.addEventListener('click',()=>{selectedPalette=button.dataset.palette;const palette=palettes[selectedPalette];document.querySelectorAll('.swatch').forEach(item=>{item.classList.toggle('active',item===button);item.setAttribute('aria-pressed',String(item===button));});document.getElementById('palette-title').textContent=palette.title;document.getElementById('palette-text').textContent=palette.text;document.querySelectorAll('.palette-strip i').forEach((item,index)=>{item.style.background=palette.colors[index];});}));
+const form=document.getElementById('brief-form');
+function summary(){const data=new FormData(form);return `${data.get('scope')} · ${data.get('area')||'—'} м² · ${data.get('home')}`;}
+form.addEventListener('input',()=>{document.getElementById('brief-summary').textContent=summary();document.getElementById('form-status').textContent='';});
+form.addEventListener('submit',event=>{event.preventDefault();if(!form.reportValidity())return;const data=new FormData(form);const text=`ЗАДАНИЕ НА РЕМОНТ КУХНИ\nМинск\n\n${summary()}\nПредпочтения: ${palettes[selectedPalette].title}\n\nПожелания:\n${String(data.get('wishes')).trim()||'Обсудить при встрече'}\n\nУточнить перед началом:\n— Размеры и состояние помещения\n— План гарнитура и расположение техники\n— Состав работ, материалы и смета\n— Сроки и порядок приёмки\n\nЭто задание для обсуждения, не расчёт стоимости и не договор.\n`;const url=URL.createObjectURL(new Blob(['\uFEFF',text],{type:'text/plain;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download='Задание-на-ремонт-кухни.txt';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);document.getElementById('form-status').textContent='Задание готово к скачиванию. Отправьте файл специалисту для обсуждения. Заявка не отправлялась.';});
+const dialog=document.getElementById('about-dialog');
+document.getElementById('about-button').addEventListener('click',()=>dialog.showModal());
+dialog.querySelector('.dialog-close').addEventListener('click',()=>dialog.close());
+dialog.addEventListener('click',event=>{if(event.target===dialog){const rect=dialog.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)dialog.close();}});
